@@ -3,38 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>สวนด็อกเตอร์ - Fast POS 🍉</title>
+<title>สวนด็อกเตอร์ - ชำระเงิน 🍉</title>
 <style>
-  :root { --primary: #2ecc71; --dark-green: #27ae60; --danger: #ff7675; --bg: #b7d3c2; }
+  :root { --primary: #2ecc71; --dark-green: #27ae60; --danger: #ff7675; --bg: #b7d3c2; --blue: #3498db; }
   body { margin: 0; font-family: 'Kanit', sans-serif; background: var(--bg); padding-bottom: 50px; }
   .container { background: #fff; margin: 15px auto; max-width: 500px; padding: 20px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
   h2 { text-align: center; color: #2d5a27; margin-bottom: 15px; }
   
-  /* เลือกสินค้า */
   .type-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 15px; }
   button.type-btn { padding: 12px 5px; border-radius: 12px; border: 2px solid #ddd; background: #fff; cursor: pointer; font-size: 14px; }
   button.type-btn.active { border-color: var(--primary); background: #e8f5e9; font-weight: bold; }
 
-  /* ใส่ข้อมูล */
   .input-group { display: flex; gap: 8px; align-items: flex-end; margin-bottom: 15px; }
-  .input-field { flex: 1; }
   input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; font-size: 16px; text-align: center; box-sizing: border-box; }
   label { font-size: 12px; font-weight: bold; display: block; margin-bottom: 4px; }
 
-  .add-btn { background: #3498db; color: white; border: none; padding: 15px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100px; }
+  /* ระบบเลือกการชำระเงิน */
+  .pay-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+  .pay-btn { padding: 15px; border-radius: 12px; border: 2px solid #ddd; background: #fff; cursor: pointer; font-weight: bold; font-size: 16px; }
+  .pay-btn.active-cash { border-color: #e67e22; background: #fff3e0; color: #e67e22; }
+  .pay-btn.active-transfer { border-color: var(--blue); background: #ebf5fb; color: var(--blue); }
 
-  /* ตะกร้าสินค้า */
   .cart-section { background: #f9f9f9; border: 2px dashed #ccc; border-radius: 15px; padding: 15px; margin-bottom: 15px; }
-  .cart-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #eee; font-size: 14px; }
-  .total-bill { font-size: 20px; text-align: right; color: #e67e22; font-weight: bold; margin: 10px 0; }
-
   .save-btn { width: 100%; padding: 18px; background: var(--primary); color: white; border: none; border-radius: 15px; font-size: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 0 var(--dark-green); }
-  .save-btn:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
 
-  .shift-box { background: #00cec9; color: white; padding: 15px; border-radius: 15px; margin-top: 20px; text-align: center; font-weight: bold; }
-  .history-list { margin-top: 20px; padding: 0; list-style: none; }
-  .history-item { display: flex; justify-content: space-between; align-items: center; background: #fdfdfd; padding: 10px; border-radius: 10px; margin-bottom: 5px; border: 1px solid #eee; font-size: 13px; }
-  .del-btn { background: var(--danger); color: white; border: none; padding: 4px 8px; border-radius: 5px; cursor: pointer; }
+  .summary-box { background: #fff; border-radius: 15px; padding: 15px; margin-top: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+  .sum-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-weight: bold; }
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;500&display=swap" rel="stylesheet">
 </head>
@@ -50,37 +44,47 @@
   </div>
 
   <div class="input-group">
-    <div class="input-field">
+    <div style="flex:1">
       <label>น้ำหนัก (กก.)</label>
       <input type="number" id="weight" placeholder="0.00" step="0.1" oninput="calculate()">
     </div>
-    <div class="input-field">
+    <div style="flex:1">
       <label>ราคาเต็ม</label>
-      <input type="text" id="autoPrice" style="background:#eee" readonly placeholder="0">
+      <input type="text" id="autoPrice" style="background:#eee" readonly>
     </div>
-    <button class="add-btn" onclick="addToCart()">+ เพิ่ม</button>
+    <button onclick="addToCart()" style="background:var(--blue); color:white; border:none; padding:15px; border-radius:10px; cursor:pointer; font-weight:bold;">+ เพิ่ม</button>
   </div>
 
   <div class="cart-section" id="cartSection" style="display:none;">
-    <p style="margin-top:0;">🛒 รายการในบิลนี้:</p>
     <div id="cartItems"></div>
-    <div class="total-bill">รวม: <span id="cartTotal">0</span>.-</div>
+    <div style="font-size:20px; text-align:right; margin:10px 0;">รวม: <span id="cartTotal">0</span>.-</div>
+    
+    <p>💳 ช่องทางการชำระเงิน</p>
+    <div class="pay-grid">
+      <button class="pay-btn" id="btnCash" onclick="selectPay('เงินสด')">💵 เงินสด</button>
+      <button class="pay-btn" id="btnTransfer" onclick="selectPay('เงินโอน')">📱 เงินโอน</button>
+    </div>
+
     <label>💵 ราคาที่เก็บจริง (บาท)</label>
-    <input type="number" id="realPrice" placeholder="ปัดเศษแล้วใส่ตรงนี้" style="border: 2px solid var(--primary); margin-top:5px;">
-    <button class="save-btn" id="btnSave" onclick="saveBill()">บันทึกทั้งบิล</button>
+    <input type="number" id="realPrice" placeholder="ระบุราคาที่รับมา">
+    <button class="save-btn" id="btnSave" onclick="saveBill()">บันทึกรายการ</button>
   </div>
 
-  <div class="shift-box">ยอดขายรอบนี้: <span id="shiftTotal">0</span> บาท</div>
-  <button onclick="closeShop()" style="width:100%; margin-top:10px; border:none; background:#636e72; color:white; padding:10px; border-radius:10px; cursor:pointer;">🔒 ปิดร้านสรุปยอด</button>
+  <div class="summary-box">
+    <div class="sum-row" style="color:var(--dark-green); font-size:18px;"><span>💰 ยอดรวมรอบนี้:</span> <span id="shiftTotal">0</span></div>
+    <div class="sum-row" style="color:#e67e22; font-size:14px;"><span>💵 เงินสด:</span> <span id="cashTotal">0</span></div>
+    <div class="sum-row" style="color:var(--blue); font-size:14px;"><span>📱 เงินโอน:</span> <span id="transferTotal">0</span></div>
+    <button onclick="closeShop()" style="width:100%; margin-top:10px; border:none; background:#636e72; color:white; padding:8px; border-radius:10px; cursor:pointer;">🔒 ปิดร้านสรุปยอด</button>
+  </div>
 
   <div style="margin-top:20px;">
-    <b>📋 ประวัติการขายรอบนี้</b>
-    <ul id="list" class="history-list"></ul>
+    <b>📋 ประวัติการขาย</b>
+    <ul id="list" style="padding:0; list-style:none;"></ul>
   </div>
 </div>
 
 <script>
-let selectedType = "", pricePerKg = 0, cart = [];
+let selectedType = "", pricePerKg = 0, cart = [], paymentMethod = "";
 const API_URL = "https://script.google.com/macros/s/AKfycbzuryhHMVBqM-9pIONhDiuYDdbQU-tl0hsyogGsV2CAqU6qmhO2iZ7YAv3W_qyHERA0Ig/exec";
 
 function selectType(btn, n, p) {
@@ -96,54 +100,56 @@ function calculate() {
 
 function addToCart() {
   let w = document.getElementById("weight").value;
-  if (!selectedType || !w) return alert("เลือกชนิดและใส่น้ำหนักก่อนครับ");
-  
-  let itemTotal = parseFloat(w) * pricePerKg;
-  cart.push({ type: selectedType, weight: w, total: itemTotal });
+  if (!selectedType || !w) return alert("เลือกชนิดและใส่น้ำหนักก่อน");
+  cart.push({ type: selectedType, weight: w, total: parseFloat(w)*pricePerKg });
   renderCart();
-  
-  // Reset input
-  document.getElementById("weight").value = "";
-  document.getElementById("autoPrice").value = "0";
+  document.getElementById("weight").value = ""; 
 }
 
 function renderCart() {
   let cartDiv = document.getElementById("cartItems");
   let section = document.getElementById("cartSection");
   if (cart.length === 0) { section.style.display = "none"; return; }
-  
   section.style.display = "block";
   cartDiv.innerHTML = "";
   let sum = 0;
   cart.forEach((item, index) => {
     sum += item.total;
-    cartDiv.innerHTML += `<div class="cart-item"><span>${item.type} ${item.weight}กก.</span> <span>${item.total.toFixed(2)}฿ <button onclick="removeFromCart(${index})" style="background:none; border:none; color:red; cursor:pointer;">✕</button></span></div>`;
+    cartDiv.innerHTML += `<div style="display:flex; justify-content:space-between; font-size:14px; margin-bottom:5px;"><span>${item.type} ${item.weight}กก.</span> <span>${item.total.toFixed(2)}฿ <button onclick="removeFromCart(${index})" style="color:red; border:none; background:none; cursor:pointer;">✕</button></span></div>`;
   });
   document.getElementById("cartTotal").innerText = sum.toFixed(2);
-  document.getElementById("realPrice").value = Math.floor(sum); // ปัดเศษลงให้อัตโนมัติเป็นตัวอย่าง
+  document.getElementById("realPrice").value = Math.floor(sum);
 }
 
 function removeFromCart(index) { cart.splice(index, 1); renderCart(); }
 
+function selectPay(method) {
+  paymentMethod = method;
+  document.getElementById("btnCash").className = "pay-btn " + (method==='เงินสด'?'active-cash':'');
+  document.getElementById("btnTransfer").className = "pay-btn " + (method==='เงินโอน'?'active-transfer':'');
+}
+
 function saveBill() {
   let real = document.getElementById("realPrice").value;
-  if (!real || cart.length === 0) return alert("กรุณาใส่ราคาที่เก็บจริง");
+  if (!paymentMethod) return alert("กรุณาเลือกช่องทางการจ่ายเงิน (เงินสด/โอน)");
+  if (!real || cart.length === 0) return alert("ข้อมูลไม่ครบ");
   
   let btn = document.getElementById("btnSave");
   btn.disabled = true; btn.innerText = "กำลังบันทึก...";
 
-  // รวมชื่อชนิดในบิลเดียว เช่น "ไร้เมล็ด, ตอปิโด"
   let combinedType = cart.map(i => i.type).join(", ");
   let combinedWeight = cart.map(i => i.weight).join("+");
 
   fetch(API_URL, {
     method: "POST", mode: "no-cors",
-    body: new URLSearchParams({ type: combinedType, weight: combinedWeight, price: real })
+    body: new URLSearchParams({ type: combinedType, weight: combinedWeight, price: real, payment: paymentMethod })
   }).then(() => {
     setTimeout(() => {
-      cart = []; renderCart();
-      loadData();
-      btn.disabled = false; btn.innerText = "บันทึกทั้งบิล";
+      cart = []; paymentMethod = "";
+      document.getElementById("btnCash").className = "pay-btn";
+      document.getElementById("btnTransfer").className = "pay-btn";
+      renderCart(); loadData();
+      btn.disabled = false; btn.innerText = "บันทึกรายการ";
     }, 1500);
   });
 }
@@ -151,18 +157,25 @@ function saveBill() {
 function loadData() {
   fetch(API_URL).then(res => res.json()).then(data => {
     let list = document.getElementById("list");
-    let shiftTotal = 0, lastClose = 0;
+    let shiftTotal = 0, cashTotal = 0, transferTotal = 0, lastClose = 0;
     list.innerHTML = "";
     if (data && data.length > 1) {
       for(let i=data.length-1; i>=1; i--) { if(data[i][1]==="--- ปิดร้าน ---") { lastClose=i; break; } }
       for (let i=data.length-1; i>lastClose; i--) {
-        let p = parseFloat(data[i][3]) || 0; shiftTotal += p;
-        let li = document.createElement("li"); li.className = "history-item";
-        li.innerHTML = `<div><b>${data[i][1]}</b><br><small>${data[i][2]} กก. | ${p}฿</small></div><button class="del-btn" onclick="deleteRow(${i+1})">ลบ</button>`;
+        let p = parseFloat(data[i][3]) || 0;
+        let pay = data[i][4] || "เงินสด";
+        shiftTotal += p;
+        if(pay === "เงินสด") cashTotal += p; else transferTotal += p;
+        
+        let li = document.createElement("li");
+        li.style = "display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee; font-size:13px; align-items:center;";
+        li.innerHTML = `<div><b>${data[i][1]}</b><br><small>${data[i][2]}กก. | ${pay}</small></div> <div>${p}฿ <button onclick="deleteRow(${i+1})" style="background:red; color:white; border:none; padding:3px 7px; border-radius:5px; cursor:pointer; margin-left:5px;">ลบ</button></div>`;
         list.appendChild(li);
       }
     }
-    document.getElementById("shiftTotal").innerText = shiftTotal.toLocaleString();
+    document.getElementById("shiftTotal").innerText = shiftTotal.toLocaleString() + ".-";
+    document.getElementById("cashTotal").innerText = cashTotal.toLocaleString() + ".-";
+    document.getElementById("transferTotal").innerText = transferTotal.toLocaleString() + ".-";
   });
 }
 
