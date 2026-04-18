@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>สวนด็อกเตอร์ POS - Full Summary 🍉</title>
+<title>สวนด็อกเตอร์ POS - Complete Edition 🍉</title>
 <style>
   :root { --primary: #2ecc71; --dark-green: #27ae60; --danger: #ff7675; --bg: #b7d3c2; --blue: #3498db; --orange: #e67e22; }
   body { margin: 0; font-family: 'Kanit', sans-serif; background: var(--bg); padding-bottom: 50px; }
@@ -38,7 +38,18 @@
   .summary-box { background: #fff; border-radius: 15px; padding: 15px; margin-top: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-left: 5px solid var(--primary); }
   .sum-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
   .close-btn { width: 100%; margin-top: 10px; border: none; background: #636e72; color: white; padding: 10px; border-radius: 10px; font-size: 14px; cursor: pointer; }
-  .history-item { display: flex; justify-content: space-between; align-items: center; background: #fdfdfd; padding: 12px; border-radius: 12px; margin-bottom: 8px; border: 1px solid #eee; font-size: 13px; }
+  
+  /* ปรับปรุงส่วนประวัติการขายให้เห็นปุ่มลบชัดเจน */
+  .history-item { 
+    display: flex; justify-content: space-between; align-items: center; 
+    background: #fdfdfd; padding: 15px; border-radius: 12px; 
+    margin-bottom: 10px; border: 1px solid #eee; font-size: 14px; 
+  }
+  .del-btn { 
+    background: var(--danger); color: white; border: none; 
+    padding: 8px 15px; border-radius: 8px; cursor: pointer; 
+    font-weight: bold; font-family: 'Kanit'; font-size: 12px;
+  }
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;500&display=swap" rel="stylesheet">
 </head>
@@ -107,7 +118,7 @@
     <button class="num-btn" onclick="pressNum('.')">.</button>
     <button class="num-btn" onclick="pressNum('0')">0</button>
     <button class="num-btn action" onclick="pressNum('del')">←</button>
-    <button class="num-btn done" style="grid-column: span 3;" onclick="closeNumpad()">เสร็จสิ้น / ปิดแป้น</button>
+    <button class="num-btn done" style="grid-column: span 3;" onclick="closeNumpad()">เสร็จสิ้น</button>
   </div>
 </div>
 
@@ -214,8 +225,15 @@ function loadData() {
         if(pay === "เงินสด") cashTotal += p; else if(pay === "เงินโอน") transferTotal += p;
         let ts = data[i][1].split(", "), ws = String(data[i][2]).split("+");
         ts.forEach((t, idx) => { dw[t] = (dw[t] || 0) + (parseFloat(ws[idx]) || 0); });
-        let li = document.createElement("li"); li.className = "history-item";
-        li.innerHTML = `<div><b>${data[i][1]}</b><br><small>${data[i][2]}กก. | ${pay}</small></div> <b>${p}฿</b>`;
+        
+        let li = document.createElement("li"); 
+        li.className = "history-item";
+        li.innerHTML = `
+          <div><b>${data[i][1]}</b><br><small>${data[i][2]}กก. | ${pay}</small></div> 
+          <div style="display:flex; align-items:center;">
+            <b style="margin-right:15px;">${p}฿</b>
+            <button class="del-btn" onclick="deleteRow(${i+1})">ลบ</button>
+          </div>`;
         list.appendChild(li);
       }
     }
@@ -228,23 +246,19 @@ function loadData() {
   });
 }
 
+function deleteRow(r) { 
+  if(confirm("ยืนยันการลบรายการนี้?")) 
+    fetch(API_URL,{method:"POST",mode:"no-cors",body:new URLSearchParams({action:'delete',row:r})}).then(()=>loadData()); 
+}
+
 function closeShop() {
   let total = document.getElementById("shiftTotal").innerText;
   let cash = document.getElementById("cashTotalDisplay").innerText;
   let transfer = document.getElementById("transferTotalDisplay").innerText;
   let detail = document.getElementById("weightSummary").innerText;
-
   if (total === "0.-" || total === "0") return alert("ไม่มีรายการ");
-  
-  // 🔥 แก้ไขส่วนแสดงผลในป๊อปอัพให้ครบถ้วน
-  let msg = "🔒 ยืนยันสรุปยอดปิดร้าน\n";
-  msg += "💰 ยอดขายทั้งหมด: " + total + " บาท\n";
-  msg += "💵 เงินสด: " + cash + " บาท\n";
-  msg += "📱 เงินโอน: " + transfer + " บาท\n\n";
-  msg += detail;
-  
+  let msg = "🔒 ยืนยันปิดร้าน\n💰 รวม: " + total + "\n💵 สด: " + cash + "\n📱 โอน: " + transfer;
   if (!confirm(msg)) return;
-
   fetch(API_URL, {
     method: "POST", mode: "no-cors",
     body: new URLSearchParams({ action: 'closeShop', total: total, cash: cash, transfer: transfer, detail: detail })
