@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ขายแตงโม - AlanShop</title>
+<title>ขายแตงโม - SUAN-DR.Shop</title>
 
 <style>
   body {
@@ -54,7 +54,7 @@
   input {
     width: 100%;
     padding: 15px;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
     border-radius: 12px;
     border: 1px solid #ccc;
     font-size: 18px;
@@ -63,7 +63,13 @@
     outline: none;
   }
 
-  input:focus { border-color: #2ecc71; }
+  /* ช่องคำนวณอัตโนมัติให้เป็นสีเทาเพื่อให้รู้ว่าพิมพ์ไม่ได้ */
+  .calc-auto {
+    background: #f0f0f0;
+    color: #e67e22;
+    font-weight: bold;
+    border: 1px dashed #e67e22;
+  }
 
   .save-btn {
     width: 100%;
@@ -76,7 +82,7 @@
     font-weight: bold;
     cursor: pointer;
     box-shadow: 0 4px 0 #27ae60;
-    margin-bottom: 10px;
+    margin-top: 10px;
   }
 
   .save-btn:active {
@@ -93,25 +99,8 @@
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
   }
 
-  h3 { margin: 0 0 15px 0; display: flex; justify-content: space-between; }
-
-  ul {
-    padding: 0;
-    margin: 0;
-    list-style: none;
-    max-height: 300px;
-    overflow-y: auto;
-  }
-
-  li {
-    padding: 12px 10px;
-    border-bottom: 1px solid #eee;
-    display: flex;
-    justify-content: space-between;
-    font-size: 15px;
-  }
-
-  li:last-child { border-bottom: none; }
+  ul { padding: 0; margin: 0; list-style: none; max-height: 300px; overflow-y: auto; }
+  li { padding: 12px 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;500&display=swap" rel="stylesheet">
 </head>
@@ -129,20 +118,22 @@
   </div>
 
   <p>น้ำหนัก (กก)</p>
-  <input type="number" id="weight" placeholder="0.00" step="0.1">
+  <input type="number" id="weight" placeholder="0.00" step="0.1" oninput="calculateTotal()">
 
-  <p>ราคาที่เก็บจริง (บาท)</p>
-  <input type="number" id="real" placeholder="0.00">
+  <p>💰 ราคามีเศษ (คำนวณให้)</p>
+  <input type="text" id="autoPrice" class="calc-auto" readonly placeholder="0.00">
+
+  <p>💵 ราคาที่เก็บจริง (บาท)</p>
+  <input type="number" id="real" placeholder="ใส่ราคาที่ปัดเศษแล้ว">
 
   <button class="save-btn" id="btnSave" onclick="save()">+ บันทึกรายขาย</button>
 
   <div class="summary-card">
-    <h3>
-      <span>💰 ยอดรวม:</span>
-      <span id="total" style="color: #27ae60;">0</span>
+    <h3 style="display: flex; justify-content: space-between; margin:0;">
+      <span>ยอดรวมทั้งหมด:</span>
+      <span id="total" style="color: #27ae60;">0 บาท</span>
     </h3>
-    <hr style="border: 0; border-top: 1px solid #eee; margin: 10px 0;">
-    <p style="margin-top: 0; color: #666;">📋 รายการขาย</p>
+    <p style="margin: 15px 0 5px 0; color: #666; font-size: 14px;">📋 ประวัติการขาย</p>
     <ul id="list">กำลังโหลดข้อมูล...</ul>
   </div>
 </div>
@@ -158,6 +149,20 @@ function selectType(btn, name, price){
   btn.classList.add("active");
   selectedType = name;
   pricePerKg = price;
+  calculateTotal(); // คำนวณใหม่เมื่อเปลี่ยนชนิด
+}
+
+// ฟังก์ชันคำนวณราคาอัตโนมัติ
+function calculateTotal() {
+  let weight = document.getElementById("weight").value;
+  let autoPriceField = document.getElementById("autoPrice");
+  
+  if(weight && pricePerKg) {
+    let total = parseFloat(weight) * pricePerKg;
+    autoPriceField.value = total.toFixed(2) + " บาท";
+  } else {
+    autoPriceField.value = "";
+  }
 }
 
 function loadData(){
@@ -169,30 +174,20 @@ function loadData(){
       list.innerHTML = "";
 
       if (data && data.length > 1) {
-        // ข้ามหัวข้อ (แถวที่ 0) แล้วแสดงจากใหม่ไปเก่า
         data.slice(1).reverse().forEach(row => {
           const type = row[1];
           const weight = row[2];
           const price = parseFloat(row[3]);
-
-          // 🔥 ตรวจสอบข้อมูล: ถ้าไม่มีชนิด หรือ ราคาไม่ใช่ตัวเลข ให้ข้ามแถวนี้
           if (!type || isNaN(price)) return; 
-
           total += price;
-
           let li = document.createElement("li");
           li.innerHTML = `<span><b>${type}</b> ${weight} กก.</span> <span>${price.toLocaleString()} ฿</span>`;
           list.appendChild(li);
         });
       } else {
-        list.innerHTML = "<li>ยังไม่มีข้อมูลการขาย</li>";
+        list.innerHTML = "<li>ยังไม่มีข้อมูล</li>";
       }
-
       document.getElementById("total").innerText = total.toLocaleString() + " บาท";
-    })
-    .catch(err => {
-      console.error("Load Error:", err);
-      document.getElementById("list").innerHTML = "<li>โหลดข้อมูลไม่สำเร็จ</li>";
     });
 }
 
@@ -202,7 +197,7 @@ function save(){
   let btn = document.getElementById("btnSave");
 
   if(!selectedType || !weight || !real){
-    alert("กรุณาเลือกชนิดและกรอกน้ำหนัก/ราคาให้ครบ");
+    alert("กรุณาเลือกชนิดและกรอกข้อมูลให้ครบ");
     return;
   }
 
@@ -217,27 +212,20 @@ function save(){
   fetch(API_URL, {
     method: "POST",
     mode: "no-cors",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: payload
   })
   .then(() => {
-    // รอแป๊บหนึ่งเพื่อให้ Sheet อัปเดตก่อนโหลดใหม่
     setTimeout(() => {
       loadData();
       btn.disabled = false;
       btn.innerText = "+ บันทึกรายขาย";
       document.getElementById("weight").value = "";
+      document.getElementById("autoPrice").value = "";
       document.getElementById("real").value = "";
     }, 1200);
-  })
-  .catch(err => {
-    alert("บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง");
-    btn.disabled = false;
-    btn.innerText = "+ บันทึกรายขาย";
   });
 }
 
-// เริ่มต้นโหลดข้อมูล
 loadData();
 </script>
 
