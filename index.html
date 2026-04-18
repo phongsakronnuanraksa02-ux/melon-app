@@ -3,231 +3,129 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ขายแตงโม - SUAN-DR.Shop</title>
-
+<title>สวนด็อกเตอร์ - POS 🍉</title>
 <style>
-  body {
-    margin: 0;
-    font-family: 'Kanit', sans-serif;
-    background: #b7d3c2;
-    color: #333;
-  }
-
-  .container {
-    background: #fdfdfd;
-    margin: 20px auto;
-    max-width: 500px;
-    padding: 25px;
-    border-radius: 25px;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-  }
-
-  h2 { text-align: center; color: #2d5a27; margin-bottom: 20px; }
-
-  .buttons {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-  }
-
-  button.type-btn {
-    flex: 1;
-    padding: 15px 5px;
-    border-radius: 15px;
-    border: 2px solid #ddd;
-    font-size: 15px;
-    background: white;
-    cursor: pointer;
-    transition: 0.2s;
-  }
-
-  button.type-btn.active {
-    border-color: #2ecc71;
-    background: #e8f5e9;
-    color: #27ae60;
-    font-weight: bold;
-    transform: scale(1.05);
-  }
-
-  p { margin: 10px 0 5px 0; font-weight: bold; }
-
-  input {
-    width: 100%;
-    padding: 15px;
-    margin-bottom: 10px;
-    border-radius: 12px;
-    border: 1px solid #ccc;
-    font-size: 18px;
-    text-align: center;
-    box-sizing: border-box;
-    outline: none;
-  }
-
-  /* ช่องคำนวณอัตโนมัติให้เป็นสีเทาเพื่อให้รู้ว่าพิมพ์ไม่ได้ */
-  .calc-auto {
-    background: #f0f0f0;
-    color: #e67e22;
-    font-weight: bold;
-    border: 1px dashed #e67e22;
-  }
-
-  .save-btn {
-    width: 100%;
-    padding: 18px;
-    background: #2ecc71;
-    color: white;
-    border: none;
-    border-radius: 15px;
-    font-size: 20px;
-    font-weight: bold;
-    cursor: pointer;
-    box-shadow: 0 4px 0 #27ae60;
-    margin-top: 10px;
-  }
-
-  .save-btn:active {
-    transform: translateY(2px);
-    box-shadow: 0 2px 0 #27ae60;
-  }
-
-  .summary-card {
-    background: #fff;
-    border-top: 4px solid #2ecc71;
-    padding: 15px;
-    border-radius: 15px;
-    margin-top: 25px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-  }
-
-  ul { padding: 0; margin: 0; list-style: none; max-height: 300px; overflow-y: auto; }
-  li { padding: 12px 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
+  body { margin: 0; font-family: 'Kanit', sans-serif; background: #b7d3c2; padding-bottom: 50px; }
+  .container { background: #fff; margin: 20px auto; max-width: 500px; padding: 25px; border-radius: 25px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+  h2 { text-align: center; color: #2d5a27; }
+  .buttons { display: flex; gap: 8px; margin-bottom: 15px; }
+  button.type-btn { flex: 1; padding: 12px 5px; border-radius: 12px; border: 2px solid #ddd; background: #fff; cursor: pointer; font-size: 14px; }
+  button.type-btn.active { border-color: #2ecc71; background: #e8f5e9; font-weight: bold; }
+  input { width: 100%; padding: 15px; margin-bottom: 10px; border-radius: 12px; border: 1px solid #ccc; font-size: 18px; text-align: center; box-sizing: border-box; }
+  .calc-auto { background: #fff9e6; color: #d35400; border: 1px dashed #f39c12; font-weight: bold; }
+  .save-btn { width: 100%; padding: 18px; background: #2ecc71; color: white; border: none; border-radius: 15px; font-size: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 0 #27ae60; }
+  
+  /* สรุปยอดรายวัน */
+  .daily-box { background: #f1c40f; padding: 15px; border-radius: 15px; margin-top: 20px; text-align: center; font-weight: bold; }
+  
+  .history { margin-top: 20px; }
+  ul { padding: 0; list-style: none; }
+  li { padding: 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: #fdfdfd; margin-bottom: 5px; border-radius: 8px; }
+  .del-btn { background: #ff7675; color: white; border: none; padding: 5px 10px; border-radius: 8px; cursor: pointer; font-size: 12px; }
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;500&display=swap" rel="stylesheet">
 </head>
-
 <body>
 
 <div class="container">
-  <h2>🍉 ระบบขายแตงโม</h2>
+  <h2>🍉 AlanShop POS</h2>
 
-  <p>ชนิดแตงโม</p>
   <div class="buttons">
     <button class="type-btn" onclick="selectType(this,'ไร้เมล็ด',25)">ไร้เมล็ด<br>25.-</button>
     <button class="type-btn" onclick="selectType(this,'ตอปิโด',15)">ตอปิโด<br>15.-</button>
     <button class="type-btn" onclick="selectType(this,'คิมสัน',15)">คิมสัน<br>15.-</button>
   </div>
 
-  <p>น้ำหนัก (กก)</p>
-  <input type="number" id="weight" placeholder="0.00" step="0.1" oninput="calculateTotal()">
+  <input type="number" id="weight" placeholder="น้ำหนัก (กก)" oninput="calculate()">
+  <input type="text" id="autoPrice" class="calc-auto" readonly placeholder="ราคาคำนวณ">
+  <input type="number" id="real" placeholder="ราคาที่เก็บจริง (บาท)">
 
-  <p>💰 ราคามีเศษ (คำนวณให้)</p>
-  <input type="text" id="autoPrice" class="calc-auto" readonly placeholder="0.00">
+  <button class="save-btn" id="btnSave" onclick="save()">บันทึกการขาย</button>
 
-  <p>💵 ราคาที่เก็บจริง (บาท)</p>
-  <input type="number" id="real" placeholder="ใส่ราคาที่ปัดเศษแล้ว">
+  <div class="daily-box">
+    📅 ยอดขายวันนี้: <span id="todayTotal">0</span> บาท
+  </div>
 
-  <button class="save-btn" id="btnSave" onclick="save()">+ บันทึกรายขาย</button>
-
-  <div class="summary-card">
-    <h3 style="display: flex; justify-content: space-between; margin:0;">
-      <span>ยอดรวมทั้งหมด:</span>
-      <span id="total" style="color: #27ae60;">0 บาท</span>
-    </h3>
-    <p style="margin: 15px 0 5px 0; color: #666; font-size: 14px;">📋 ประวัติการขาย</p>
-    <ul id="list">กำลังโหลดข้อมูล...</ul>
+  <div class="history">
+    <p><b>ประวัติการขาย (ล่าสุด)</b></p>
+    <ul id="list">กำลังโหลด...</ul>
   </div>
 </div>
 
 <script>
-let selectedType = "";
-let pricePerKg = 0;
-
+let selectedType = "", pricePerKg = 0;
 const API_URL = "https://script.google.com/macros/s/AKfycbzuryhHMVBqM-9pIONhDiuYDdbQU-tl0hsyogGsV2CAqU6qmhO2iZ7YAv3W_qyHERA0Ig/exec";
 
-function selectType(btn, name, price){
+function selectType(btn, n, p) {
   document.querySelectorAll(".type-btn").forEach(b => b.classList.remove("active"));
   btn.classList.add("active");
-  selectedType = name;
-  pricePerKg = price;
-  calculateTotal(); // คำนวณใหม่เมื่อเปลี่ยนชนิด
+  selectedType = n; pricePerKg = p; calculate();
 }
 
-// ฟังก์ชันคำนวณราคาอัตโนมัติ
-function calculateTotal() {
-  let weight = document.getElementById("weight").value;
-  let autoPriceField = document.getElementById("autoPrice");
-  
-  if(weight && pricePerKg) {
-    let total = parseFloat(weight) * pricePerKg;
-    autoPriceField.value = total.toFixed(2) + " บาท";
-  } else {
-    autoPriceField.value = "";
-  }
+function calculate() {
+  let w = document.getElementById("weight").value;
+  document.getElementById("autoPrice").value = w ? (w * pricePerKg).toFixed(2) + " บาท" : "";
 }
 
-function loadData(){
-  fetch(API_URL)
-    .then(res => res.json())
-    .then(data => {
-      let total = 0;
-      let list = document.getElementById("list");
-      list.innerHTML = "";
+function loadData() {
+  fetch(API_URL).then(res => res.json()).then(data => {
+    let list = document.getElementById("list");
+    let todayTotal = 0;
+    list.innerHTML = "";
+    
+    let today = new Date().toLocaleDateString();
 
-      if (data && data.length > 1) {
-        data.slice(1).reverse().forEach(row => {
-          const type = row[1];
-          const weight = row[2];
-          const price = parseFloat(row[3]);
-          if (!type || isNaN(price)) return; 
-          total += price;
-          let li = document.createElement("li");
-          li.innerHTML = `<span><b>${type}</b> ${weight} กก.</span> <span>${price.toLocaleString()} ฿</span>`;
-          list.appendChild(li);
-        });
-      } else {
-        list.innerHTML = "<li>ยังไม่มีข้อมูล</li>";
+    if (data && data.length > 1) {
+      // วนลูปจากล่างขึ้นบนเพื่อให้ลำดับแถวถูกต้อง
+      for (let i = data.length - 1; i >= 1; i--) {
+        let row = data[i];
+        let rowDate = new Date(row[0]).toLocaleDateString();
+        let price = parseFloat(row[3]) || 0;
+
+        if (rowDate === today) todayTotal += price;
+
+        let li = document.createElement("li");
+        li.innerHTML = `
+          <div><b>${row[1]}</b><br><small>${row[2]} กก. | ${price}฿</small></div>
+          <button class="del-btn" onclick="deleteRow(${i + 1})">ลบ</button>
+        `;
+        list.appendChild(li);
       }
-      document.getElementById("total").innerText = total.toLocaleString() + " บาท";
-    });
+    }
+    document.getElementById("todayTotal").innerText = todayTotal.toLocaleString();
+  });
 }
 
-function save(){
-  let weight = document.getElementById("weight").value;
-  let real = document.getElementById("real").value;
-  let btn = document.getElementById("btnSave");
-
-  if(!selectedType || !weight || !real){
-    alert("กรุณาเลือกชนิดและกรอกข้อมูลให้ครบ");
-    return;
-  }
-
-  btn.disabled = true;
-  btn.innerText = "กำลังบันทึก...";
-
-  const payload = new URLSearchParams();
-  payload.append('type', selectedType);
-  payload.append('weight', weight);
-  payload.append('price', real);
-
+function save() {
+  let w = document.getElementById("weight").value, r = document.getElementById("real").value;
+  if (!selectedType || !w || !r) return alert("กรอกข้อมูลไม่ครบ");
+  
+  document.getElementById("btnSave").disabled = true;
   fetch(API_URL, {
-    method: "POST",
-    mode: "no-cors",
-    body: payload
-  })
-  .then(() => {
-    setTimeout(() => {
-      loadData();
-      btn.disabled = false;
-      btn.innerText = "+ บันทึกรายขาย";
-      document.getElementById("weight").value = "";
-      document.getElementById("autoPrice").value = "";
+    method: "POST", mode: "no-cors",
+    body: new URLSearchParams({type: selectedType, weight: w, price: r})
+  }).then(() => {
+    setTimeout(() => { 
+      loadData(); 
+      document.getElementById("btnSave").disabled = false;
+      document.getElementById("weight").value = ""; 
       document.getElementById("real").value = "";
-    }, 1200);
+    }, 1500);
+  });
+}
+
+function deleteRow(rowNum) {
+  if (!confirm("ยืนยันจะลบรายการนี้ใช่ไหม?")) return;
+  fetch(API_URL, {
+    method: "POST", mode: "no-cors",
+    body: new URLSearchParams({action: 'delete', row: rowNum})
+  }).then(() => {
+    alert("ลบเรียบร้อย");
+    loadData();
   });
 }
 
 loadData();
 </script>
-
 </body>
 </html>
