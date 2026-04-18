@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>สวนด็อกเตอร์ POS - Fast Flow 🍉</title>
+<title>สวนด็อกเตอร์ POS - Full Summary 🍉</title>
 <style>
   :root { --primary: #2ecc71; --dark-green: #27ae60; --danger: #ff7675; --bg: #b7d3c2; --blue: #3498db; --orange: #e67e22; }
   body { margin: 0; font-family: 'Kanit', sans-serif; background: var(--bg); padding-bottom: 50px; }
@@ -20,7 +20,6 @@
   label { font-size: 12px; font-weight: bold; display: block; margin-bottom: 4px; color: #666; }
   .add-btn { background: var(--blue); color: white; border: none; padding: 15px; border-radius: 10px; cursor: pointer; font-weight: bold; min-width: 70px; }
 
-  /* Numpad Style */
   .numpad-overlay { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: #d1d5db; padding: 10px 0; box-shadow: 0 -5px 15px rgba(0,0,0,0.2); z-index: 1000; border-radius: 20px 20px 0 0; }
   .numpad-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; max-width: 400px; margin: 0 auto; padding: 0 10px; }
   .num-btn { background: #fff; border: none; padding: 15px; border-radius: 10px; font-size: 24px; font-weight: bold; color: #1f2937; cursor: pointer; box-shadow: 0 2px 0 #9ca3af; }
@@ -154,8 +153,6 @@ function addToCart() {
   if (!selectedType || !w) return alert("เลือกชนิดและใส่น้ำหนักก่อน");
   cart.push({ type: selectedType, weight: w, total: parseFloat(w)*pricePerKg });
   renderCart();
-  
-  // 🔥 แป้นพิมพ์หายทันทีเมื่อกดเพิ่ม
   closeNumpad(); 
   document.getElementById("weight").value = ""; 
 }
@@ -186,10 +183,7 @@ function selectPay(method) {
 function saveBill() {
   let real = document.getElementById("realPrice").value;
   if (!paymentMethod || !real || cart.length === 0) return alert("ข้อมูลไม่ครบ");
-  
-  // 🔥 แป้นพิมพ์หายทันทีเมื่อกดบันทึกบิล
   closeNumpad(); 
-
   let btn = document.getElementById("btnSave");
   btn.disabled = true; btn.innerText = "กำลังบันทึก...";
   fetch(API_URL, {
@@ -236,12 +230,24 @@ function loadData() {
 
 function closeShop() {
   let total = document.getElementById("shiftTotal").innerText;
-  if (total === "0.-") return alert("ไม่มีรายการ");
-  let msg = "🔒 ยืนยันปิดร้าน\n💰 รวม: " + total;
+  let cash = document.getElementById("cashTotalDisplay").innerText;
+  let transfer = document.getElementById("transferTotalDisplay").innerText;
+  let detail = document.getElementById("weightSummary").innerText;
+
+  if (total === "0.-" || total === "0") return alert("ไม่มีรายการ");
+  
+  // 🔥 แก้ไขส่วนแสดงผลในป๊อปอัพให้ครบถ้วน
+  let msg = "🔒 ยืนยันสรุปยอดปิดร้าน\n";
+  msg += "💰 ยอดขายทั้งหมด: " + total + " บาท\n";
+  msg += "💵 เงินสด: " + cash + " บาท\n";
+  msg += "📱 เงินโอน: " + transfer + " บาท\n\n";
+  msg += detail;
+  
   if (!confirm(msg)) return;
+
   fetch(API_URL, {
     method: "POST", mode: "no-cors",
-    body: new URLSearchParams({ action: 'closeShop', total: total, cash: 'N/A', transfer: 'N/A', detail: document.getElementById("weightSummary").innerText })
+    body: new URLSearchParams({ action: 'closeShop', total: total, cash: cash, transfer: transfer, detail: detail })
   }).then(() => { alert("บันทึกปิดร้านสำเร็จ"); loadData(); });
 }
 
