@@ -3,32 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>สวนด็อกเตอร์ - ชำระเงิน 🍉</title>
+<title>สวนด็อกเตอร์ POS - Daily Summary 🍉</title>
 <style>
-  :root { --primary: #2ecc71; --dark-green: #27ae60; --danger: #ff7675; --bg: #b7d3c2; --blue: #3498db; }
+  :root { --primary: #2ecc71; --dark-green: #27ae60; --danger: #ff7675; --bg: #b7d3c2; --blue: #3498db; --orange: #e67e22; }
   body { margin: 0; font-family: 'Kanit', sans-serif; background: var(--bg); padding-bottom: 50px; }
   .container { background: #fff; margin: 15px auto; max-width: 500px; padding: 20px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
   h2 { text-align: center; color: #2d5a27; margin-bottom: 15px; }
-  
   .type-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 15px; }
   button.type-btn { padding: 12px 5px; border-radius: 12px; border: 2px solid #ddd; background: #fff; cursor: pointer; font-size: 14px; }
   button.type-btn.active { border-color: var(--primary); background: #e8f5e9; font-weight: bold; }
-
   .input-group { display: flex; gap: 8px; align-items: flex-end; margin-bottom: 15px; }
-  input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; font-size: 16px; text-align: center; box-sizing: border-box; }
-  label { font-size: 12px; font-weight: bold; display: block; margin-bottom: 4px; }
-
-  /* ระบบเลือกการชำระเงิน */
-  .pay-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-  .pay-btn { padding: 15px; border-radius: 12px; border: 2px solid #ddd; background: #fff; cursor: pointer; font-weight: bold; font-size: 16px; }
-  .pay-btn.active-cash { border-color: #e67e22; background: #fff3e0; color: #e67e22; }
-  .pay-btn.active-transfer { border-color: var(--blue); background: #ebf5fb; color: var(--blue); }
-
+  input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; font-size: 16px; text-align: center; box-sizing: border-box; outline: none; }
+  label { font-size: 12px; font-weight: bold; display: block; margin-bottom: 4px; color: #666; }
+  .add-btn { background: var(--blue); color: white; border: none; padding: 15px; border-radius: 10px; cursor: pointer; font-weight: bold; }
   .cart-section { background: #f9f9f9; border: 2px dashed #ccc; border-radius: 15px; padding: 15px; margin-bottom: 15px; }
+  .pay-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+  .pay-btn { padding: 15px; border-radius: 12px; border: 2px solid #ddd; background: #fff; cursor: pointer; font-weight: bold; }
+  .pay-btn.active-cash { border-color: var(--orange); background: #fff3e0; color: var(--orange); }
+  .pay-btn.active-transfer { border-color: var(--blue); background: #ebf5fb; color: var(--blue); }
   .save-btn { width: 100%; padding: 18px; background: var(--primary); color: white; border: none; border-radius: 15px; font-size: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 0 var(--dark-green); }
-
   .summary-box { background: #fff; border-radius: 15px; padding: 15px; margin-top: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-  .sum-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-weight: bold; }
+  .sum-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
+  .history-item { display: flex; justify-content: space-between; align-items: center; background: #fdfdfd; padding: 10px; border-radius: 10px; margin-bottom: 5px; border: 1px solid #eee; font-size: 13px; }
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;500&display=swap" rel="stylesheet">
 </head>
@@ -52,39 +48,37 @@
       <label>ราคาเต็ม</label>
       <input type="text" id="autoPrice" style="background:#eee" readonly>
     </div>
-    <button onclick="addToCart()" style="background:var(--blue); color:white; border:none; padding:15px; border-radius:10px; cursor:pointer; font-weight:bold;">+ เพิ่ม</button>
+    <button class="add-btn" onclick="addToCart()">+ เพิ่ม</button>
   </div>
 
   <div class="cart-section" id="cartSection" style="display:none;">
     <div id="cartItems"></div>
-    <div style="font-size:20px; text-align:right; margin:10px 0;">รวม: <span id="cartTotal">0</span>.-</div>
-    
-    <p>💳 ช่องทางการชำระเงิน</p>
+    <div style="font-size:20px; text-align:right; margin:10px 0; font-weight:bold;">รวม: <span id="cartTotal">0</span>.-</div>
     <div class="pay-grid">
       <button class="pay-btn" id="btnCash" onclick="selectPay('เงินสด')">💵 เงินสด</button>
       <button class="pay-btn" id="btnTransfer" onclick="selectPay('เงินโอน')">📱 เงินโอน</button>
     </div>
-
-    <label>💵 ราคาที่เก็บจริง (บาท)</label>
-    <input type="number" id="realPrice" placeholder="ระบุราคาที่รับมา">
-    <button class="save-btn" id="btnSave" onclick="saveBill()">บันทึกรายการ</button>
+    <input type="number" id="realPrice" placeholder="ราคาที่เก็บจริง" style="font-size:20px; height:50px; margin-bottom:10px; border:2px solid var(--primary)">
+    <button class="save-btn" id="btnSave" onclick="saveBill()">บันทึกรายการขาย</button>
   </div>
 
   <div class="summary-box">
-    <div class="sum-row" style="color:var(--dark-green); font-size:18px;"><span>💰 ยอดรวมรอบนี้:</span> <span id="shiftTotal">0</span></div>
-    <div class="sum-row" style="color:#e67e22; font-size:14px;"><span>💵 เงินสด:</span> <span id="cashTotal">0</span></div>
-    <div class="sum-row" style="color:var(--blue); font-size:14px;"><span>📱 เงินโอน:</span> <span id="transferTotal">0</span></div>
-    <button onclick="closeShop()" style="width:100%; margin-top:10px; border:none; background:#636e72; color:white; padding:8px; border-radius:10px; cursor:pointer;">🔒 ปิดร้านสรุปยอด</button>
+    <div class="sum-row" style="color:var(--dark-green); font-size:18px;"><span>💰 ยอดขายรอบนี้:</span> <span id="shiftTotal">0</span></div>
+    <div class="sum-row" style="color:var(--orange)"><span>💵 เงินสด:</span> <span id="cashTotalDisplay">0</span></div>
+    <div class="sum-row" style="color:var(--blue)"><span>📱 เงินโอน:</span> <span id="transferTotalDisplay">0</span></div>
+    <div id="weightSummary" style="font-size:12px; color:#666; margin-top:10px; border-top:1px solid #eee; padding-top:5px;"></div>
+    <button onclick="closeShop()" style="width:100%; margin-top:10px; border:none; background:#636e72; color:white; padding:10px; border-radius:10px; cursor:pointer;">🔒 ปิดร้านและบันทึกสรุปยอด</button>
   </div>
 
   <div style="margin-top:20px;">
-    <b>📋 ประวัติการขาย</b>
+    <b>📋 ประวัติการขายรอบนี้</b>
     <ul id="list" style="padding:0; list-style:none;"></ul>
   </div>
 </div>
 
 <script>
 let selectedType = "", pricePerKg = 0, cart = [], paymentMethod = "";
+let dailyWeights = {}; // เก็บน้ำหนักรวมแยกตามชนิด
 const API_URL = "https://script.google.com/macros/s/AKfycbzuryhHMVBqM-9pIONhDiuYDdbQU-tl0hsyogGsV2CAqU6qmhO2iZ7YAv3W_qyHERA0Ig/exec";
 
 function selectType(btn, n, p) {
@@ -100,8 +94,8 @@ function calculate() {
 
 function addToCart() {
   let w = document.getElementById("weight").value;
-  if (!selectedType || !w) return alert("เลือกชนิดและใส่น้ำหนักก่อน");
-  cart.push({ type: selectedType, weight: w, total: parseFloat(w)*pricePerKg });
+  if (!selectedType || !w) return alert("เลือกชนิดและน้ำหนักก่อน");
+  cart.push({ type: selectedType, weight: parseFloat(w), total: parseFloat(w)*pricePerKg });
   renderCart();
   document.getElementById("weight").value = ""; 
 }
@@ -115,7 +109,7 @@ function renderCart() {
   let sum = 0;
   cart.forEach((item, index) => {
     sum += item.total;
-    cartDiv.innerHTML += `<div style="display:flex; justify-content:space-between; font-size:14px; margin-bottom:5px;"><span>${item.type} ${item.weight}กก.</span> <span>${item.total.toFixed(2)}฿ <button onclick="removeFromCart(${index})" style="color:red; border:none; background:none; cursor:pointer;">✕</button></span></div>`;
+    cartDiv.innerHTML += `<div style="display:flex; justify-content:space-between; font-size:14px; margin-bottom:5px;"><span>${item.type} ${item.weight}กก.</span> <span>${item.total.toFixed(2)}฿ <button onclick="removeFromCart(${index})" style="color:red; border:none; background:none;">✕</button></span></div>`;
   });
   document.getElementById("cartTotal").innerText = sum.toFixed(2);
   document.getElementById("realPrice").value = Math.floor(sum);
@@ -131,26 +125,22 @@ function selectPay(method) {
 
 function saveBill() {
   let real = document.getElementById("realPrice").value;
-  if (!paymentMethod) return alert("กรุณาเลือกช่องทางการจ่ายเงิน (เงินสด/โอน)");
-  if (!real || cart.length === 0) return alert("ข้อมูลไม่ครบ");
+  if (!paymentMethod || !real || cart.length === 0) return alert("ข้อมูลไม่ครบ");
   
   let btn = document.getElementById("btnSave");
   btn.disabled = true; btn.innerText = "กำลังบันทึก...";
 
-  let combinedType = cart.map(i => i.type).join(", ");
-  let combinedWeight = cart.map(i => i.weight).join("+");
-
   fetch(API_URL, {
     method: "POST", mode: "no-cors",
-    body: new URLSearchParams({ type: combinedType, weight: combinedWeight, price: real, payment: paymentMethod })
+    body: new URLSearchParams({ type: cart.map(i=>i.type).join(", "), weight: cart.map(i=>i.weight).join("+"), price: real, payment: paymentMethod })
   }).then(() => {
     setTimeout(() => {
       cart = []; paymentMethod = "";
       document.getElementById("btnCash").className = "pay-btn";
       document.getElementById("btnTransfer").className = "pay-btn";
       renderCart(); loadData();
-      btn.disabled = false; btn.innerText = "บันทึกรายการ";
-    }, 1500);
+      btn.disabled = false; btn.innerText = "บันทึกรายการขาย";
+    }, 1200);
   });
 }
 
@@ -158,29 +148,62 @@ function loadData() {
   fetch(API_URL).then(res => res.json()).then(data => {
     let list = document.getElementById("list");
     let shiftTotal = 0, cashTotal = 0, transferTotal = 0, lastClose = 0;
+    dailyWeights = {}; // ล้างค่าสรุปน้ำหนักเก่า
     list.innerHTML = "";
+    
     if (data && data.length > 1) {
       for(let i=data.length-1; i>=1; i--) { if(data[i][1]==="--- ปิดร้าน ---") { lastClose=i; break; } }
       for (let i=data.length-1; i>lastClose; i--) {
         let p = parseFloat(data[i][3]) || 0;
         let pay = data[i][4] || "เงินสด";
+        let typeStr = data[i][1];
+        let weightStr = String(data[i][2]);
+        
         shiftTotal += p;
         if(pay === "เงินสด") cashTotal += p; else transferTotal += p;
         
+        // คำนวณสรุปน้ำหนัก
+        let types = typeStr.split(", ");
+        let weights = weightStr.split("+");
+        types.forEach((t, idx) => {
+          let w = parseFloat(weights[idx]) || 0;
+          dailyWeights[t] = (dailyWeights[t] || 0) + w;
+        });
+
         let li = document.createElement("li");
-        li.style = "display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee; font-size:13px; align-items:center;";
-        li.innerHTML = `<div><b>${data[i][1]}</b><br><small>${data[i][2]}กก. | ${pay}</small></div> <div>${p}฿ <button onclick="deleteRow(${i+1})" style="background:red; color:white; border:none; padding:3px 7px; border-radius:5px; cursor:pointer; margin-left:5px;">ลบ</button></div>`;
+        li.className = "history-item";
+        li.innerHTML = `<div><b>${typeStr}</b><br><small>${weightStr}กก. | ${pay}</small></div> <b>${p}฿</b>`;
         list.appendChild(li);
       }
     }
     document.getElementById("shiftTotal").innerText = shiftTotal.toLocaleString() + ".-";
-    document.getElementById("cashTotal").innerText = cashTotal.toLocaleString() + ".-";
-    document.getElementById("transferTotal").innerText = transferTotal.toLocaleString() + ".-";
+    document.getElementById("cashTotalDisplay").innerText = cashTotal.toLocaleString() + ".-";
+    document.getElementById("transferTotalDisplay").innerText = transferTotal.toLocaleString() + ".-";
+    
+    // แสดงสรุปน้ำหนักหน้าจอ
+    let weightText = "สรุปน้ำหนักรอบนี้: ";
+    for (let t in dailyWeights) { weightText += `${t} ${dailyWeights[t].toFixed(1)}กก. / `; }
+    document.getElementById("weightSummary").innerText = weightText;
   });
 }
 
-function deleteRow(r) { if(confirm("ลบรายการนี้?")) fetch(API_URL,{method:"POST",mode:"no-cors",body:new URLSearchParams({action:'delete',row:r})}).then(()=>loadData()); }
-function closeShop() { let t = document.getElementById("shiftTotal").innerText; if(confirm("ปิดร้านสรุปยอด "+t+"?")) fetch(API_URL,{method:"POST",mode:"no-cors",body:new URLSearchParams({action:'closeShop',total:t})}).then(()=>loadData()); }
+function closeShop() {
+  let total = document.getElementById("shiftTotal").innerText;
+  let cash = document.getElementById("cashTotalDisplay").innerText;
+  let transfer = document.getElementById("transferTotalDisplay").innerText;
+  let detail = document.getElementById("weightSummary").innerText;
+
+  if (total === "0" || total === "0.-") return alert("ยังไม่มีรายการ");
+  if (!confirm("ยืนยันการปิดร้านและบันทึกยอดสรุป?")) return;
+
+  fetch(API_URL, {
+    method: "POST", mode: "no-cors",
+    body: new URLSearchParams({ action: 'closeShop', total: total, cash: cash, transfer: transfer, detail: detail })
+  }).then(() => {
+    alert("ปิดร้านและบันทึกสรุปยอดลงใน Sheet บรรทัดเดียวเรียบร้อย!");
+    loadData();
+  });
+}
 
 loadData();
 </script>
